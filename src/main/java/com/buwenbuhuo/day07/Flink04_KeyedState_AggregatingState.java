@@ -3,11 +3,8 @@ package com.buwenbuhuo.day07;
 import com.buwenbuhuo.bean.WaterSensor;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.common.functions.MapFunction;
-import org.apache.flink.api.common.functions.ReduceFunction;
 import org.apache.flink.api.common.state.AggregatingState;
 import org.apache.flink.api.common.state.AggregatingStateDescriptor;
-import org.apache.flink.api.common.state.ReducingState;
-import org.apache.flink.api.common.state.ReducingStateDescriptor;
 import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -85,7 +82,7 @@ public class Flink04_KeyedState_AggregatingState {
                 aggregatingState.add(value.getVc());
                 // 2.取出状态中计算过后的结果
                 Double vcAvg = aggregatingState.get();
-                out.collect(value.getId() + "-" + vcAvg);
+                out.collect(value.getId() + "：" + vcAvg);
             }
         });
 

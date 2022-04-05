@@ -3,8 +3,6 @@ package com.buwenbuhuo.day07;
 import com.buwenbuhuo.bean.WaterSensor;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.ReduceFunction;
-import org.apache.flink.api.common.state.ListState;
-import org.apache.flink.api.common.state.ListStateDescriptor;
 import org.apache.flink.api.common.state.ReducingState;
 import org.apache.flink.api.common.state.ReducingStateDescriptor;
 import org.apache.flink.api.java.tuple.Tuple;
@@ -15,9 +13,6 @@ import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.util.Collector;
-
-import java.util.ArrayList;
-import java.util.Comparator;
 
 /**
  * Author 不温卜火
@@ -70,7 +65,7 @@ public class Flink03_KeyedState_ReducingState {
                 reducingState.add(value.getVc());
                 // 2.取出状态中的数据(累加过后的结果)
                 Integer sumVc = reducingState.get();
-                out.collect(value.getId() + "-" + sumVc);
+                out.collect(value.getId() + "：" + sumVc);
             }
         });
 

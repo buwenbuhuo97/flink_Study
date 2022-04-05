@@ -14,7 +14,7 @@ import java.io.IOException;
  * Author 不温卜火
  * Create 2022-04-02 11:30
  * MyBlog https://buwenbuhuo.blog.csdn.net
- * Description:
+ * Description:在代码中配置状态后端代码实现
  */
 public class Flink09_StateBackend {
     public static void main(String[] args) throws IOException {

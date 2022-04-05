@@ -11,7 +11,6 @@ import org.apache.flink.cep.pattern.Pattern;
 import org.apache.flink.cep.pattern.conditions.IterativeCondition;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +19,7 @@ import java.util.Map;
  * Author 不温卜火
  * Create 2022-04-02 16:12
  * MyBlog https://buwenbuhuo.blog.csdn.net
- * Description:
+ * Description: CEP组合模式的代码实现
  */
 public class Flink14_CEP_PatternGroup {
     public static void main(String[] args) throws Exception {
@@ -52,14 +51,19 @@ public class Flink14_CEP_PatternGroup {
 
         // 2.定义模式:组合模式
         Pattern<WaterSensor, WaterSensor> pattern = Pattern.<WaterSensor>begin("start")
-                // TODO 迭代条件
+                // 迭代条件
                 .where(new IterativeCondition<WaterSensor>() {
                     @Override
                     public boolean filter(WaterSensor value, Context<WaterSensor> context) throws Exception {
                         return "sensor_1".equals(value.getId());
                     }
                 })
-                .next("end")
+                // TODO 严格模式
+                // .next("end")
+                // TODO 松散模式
+                // .followedBy("end")
+                // TODO 非确定的松散连续模式
+                .followedByAny("end")
                 .where(new IterativeCondition<WaterSensor>() {
                     @Override
                     public boolean filter(WaterSensor value, Context<WaterSensor> context) throws Exception {
@@ -73,9 +77,9 @@ public class Flink14_CEP_PatternGroup {
         PatternStream<WaterSensor> patternStream = CEP.pattern(waterSensorDStream, pattern);
 
         // 5.获取匹配到的数据
-        SingleOutputStreamOperator<String> result = patternStream.select(new PatternSelectFunction<WaterSensor, String>() {
+        SingleOutputStreamOperator<String> result =patternStream.select(new PatternSelectFunction<WaterSensor, String>() {
             @Override
-            public String select(Map<String, List<WaterSensor>> map) throws Exception {
+            public String select(Map<String, List<WaterSensor>> pattern) throws Exception {
                 return pattern.toString();
             }
         });

@@ -20,7 +20,7 @@ import java.util.Map;
  * Author 不温卜火
  * Create 2022-04-02 16:12
  * MyBlog https://buwenbuhuo.blog.csdn.net
- * Description:
+ * Description: CEP单例模式的循环模式实现
  */
 public class Flink12_CEP_Loop {
     public static void main(String[] args) throws Exception {
@@ -63,16 +63,16 @@ public class Flink12_CEP_Loop {
                 //.times(2,4)
                 // TODO 一次或多次
                 //.oneOrMore()
-                // TODO 的多次或多次以上
+                // TODO 多次或多次以上
                 .timesOrMore(2);
 
         // 4.将模式作用于流上
         PatternStream<WaterSensor> patternStream = CEP.pattern(waterSensorDStream, pattern);
 
         // 5.获取匹配到的数据
-        SingleOutputStreamOperator<String> result = patternStream.select(new PatternSelectFunction<WaterSensor, String>() {
+        SingleOutputStreamOperator<String> result =patternStream.select(new PatternSelectFunction<WaterSensor, String>() {
             @Override
-            public String select(Map<String, List<WaterSensor>> map) throws Exception {
+            public String select(Map<String, List<WaterSensor>> pattern) throws Exception {
                 return pattern.toString();
             }
         });

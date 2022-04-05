@@ -14,7 +14,7 @@ import org.apache.flink.util.Collector;
  * Author 不温卜火
  * Create 2022-04-02 15:07
  * MyBlog https://buwenbuhuo.blog.csdn.net
- * Description:
+ * Description:cancel的时候不会删除checkpoint信息
  */
 public class Flink10_Savepoint_Checkpoint2 {
     public static void main(String[] args) throws Exception {

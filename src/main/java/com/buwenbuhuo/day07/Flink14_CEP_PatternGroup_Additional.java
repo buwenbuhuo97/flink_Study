@@ -18,11 +18,11 @@ import java.util.Map;
 
 /**
  * Author 不温卜火
- * Create 2022-04-02 16:12
+ * Create 2022-04-05 22:05
  * MyBlog https://buwenbuhuo.blog.csdn.net
- * Description:CEP条件的代码实现
+ * Description:CEP模式知识补充:循环模式的连续性
  */
-public class Flink13_CEP_Condition {
+public class Flink14_CEP_PatternGroup_Additional {
     public static void main(String[] args) throws Exception {
         // TODO 1.准备工作
         // 1.创建流式执行环境
@@ -50,72 +50,35 @@ public class Flink13_CEP_Condition {
                                 })
                 );
 
-        // 2.定义模式
-        Pattern<WaterSensor, WaterSensor> pattern = Pattern.<WaterSensor>begin("start")
-                // TODO 迭代条件
-                /*.where(new IterativeCondition<WaterSensor>() {
-                    @Override
-                    public boolean filter(WaterSensor value, Context<WaterSensor> context) throws Exception {
-                        return "sensor_1".equals(value.getId());
-                    }
-                });*/
-
-                // TODO 简单条件
-                /*.where(new SimpleCondition<WaterSensor>() {
-                    @Override
-                    public boolean filter(WaterSensor value) throws Exception {
-                        return "sensor_1".equals(value.getId());
-                    }
-                });*/
-
-                // TODO 组合条件
-                /*.where(new IterativeCondition<WaterSensor>() {
-                    @Override
-                    public boolean filter(WaterSensor value, Context<WaterSensor> context) throws Exception {
-                        return "sensor_1".equals(value.getId());
-                    }
-                })
+        // 2.定义模式  模式知识补充(循环模式的连续性)
+        Pattern<WaterSensor, WaterSensor> pattern = Pattern
+                .<WaterSensor>begin("start")
                 .where(new IterativeCondition<WaterSensor>() {
                     @Override
-                    public boolean filter(WaterSensor value, Context<WaterSensor> context) throws Exception {
-                        return value.getVc()>30;
-                    }
-                })
-                .or(new IterativeCondition<WaterSensor>() {
-                    @Override
-                    public boolean filter(WaterSensor value, Context<WaterSensor> context) throws Exception {
-                        return value.getTs()>3000;
-                    }
-                });*/
-
-                // TODO 停止条件
-                .where(new IterativeCondition<WaterSensor>() {
-                    @Override
-                    public boolean filter(WaterSensor value, Context<WaterSensor> context) throws Exception {
+                    public boolean filter(WaterSensor value, IterativeCondition.Context<WaterSensor> ctx) throws Exception {
                         return "sensor_1".equals(value.getId());
                     }
                 })
-                .timesOrMore(2)
-                .until(new IterativeCondition<WaterSensor>() {
-                    @Override
-                    public boolean filter(WaterSensor value, Context<WaterSensor> context) throws Exception {
-                        return value.getVc() >= 40;
-                    }
-                });
+                //默认就是松散连续
+                 .times(2)
+                //严格连续 相当于 next
+                // .consecutive()
+                //非确定的松散连续
+                .allowCombinations()
+                ;
 
-
-        // 4.将模式作用于流上
+        // 3.将模式作用于流上
         PatternStream<WaterSensor> patternStream = CEP.pattern(waterSensorDStream, pattern);
 
-        // 5.获取匹配到的数据
-        SingleOutputStreamOperator<String> result =patternStream.select(new PatternSelectFunction<WaterSensor, String>() {
+        // 4.获取匹配到的数据
+        SingleOutputStreamOperator<String> result = patternStream.select(new PatternSelectFunction<WaterSensor, String>() {
             @Override
             public String select(Map<String, List<WaterSensor>> pattern) throws Exception {
                 return pattern.toString();
             }
         });
 
-        // 6.输出打印
+        // 5.输出打印
         result.print();
 
         // TODO 3.启动执行
