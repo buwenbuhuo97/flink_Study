@@ -1,4 +1,4 @@
-package com.buwenbuhuo.day07;
+package com.buwenbuhuo.day08;
 
 import com.buwenbuhuo.bean.WaterSensor;
 import org.apache.flink.api.common.eventtime.SerializableTimestampAssigner;
@@ -11,7 +11,7 @@ import org.apache.flink.cep.pattern.Pattern;
 import org.apache.flink.cep.pattern.conditions.IterativeCondition;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-
+import org.apache.flink.streaming.api.windowing.time.Time;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -20,9 +20,9 @@ import java.util.Map;
  * Author 不温卜火
  * Create 2022-04-05 22:05
  * MyBlog https://buwenbuhuo.blog.csdn.net
- * Description:CEP模式知识补充:循环模式的连续性
+ * Description:CEP模式知识补充:超时数据
  */
-public class Flink14_CEP_PatternGroup_Additional {
+public class Flink04_CEP_Within {
     public static void main(String[] args) throws Exception {
         // TODO 1.准备工作
         // 1.创建流式执行环境
@@ -32,7 +32,7 @@ public class Flink14_CEP_PatternGroup_Additional {
 
         // TODO 2.核心代码
         // 1.从文件读取数据并转为Javabean同时指定waterMark
-        SingleOutputStreamOperator<WaterSensor> waterSensorDStream = env.readTextFile("input/sensor.txt")
+        SingleOutputStreamOperator<WaterSensor> waterSensorDStream = env.readTextFile("input/sensor3.txt")
                 .map(new MapFunction<String, WaterSensor>() {
                     @Override
                     public WaterSensor map(String value) throws Exception {
@@ -50,22 +50,33 @@ public class Flink14_CEP_PatternGroup_Additional {
                                 })
                 );
 
-        // 2.定义模式  模式知识补充(循环模式的连续性)
+        /**
+         *  未设置超时数据结果：
+         *      {start=[WaterSensor(id=sensor_1, ts=1000, vc=10)], end=[WaterSensor(id=sensor_2, ts=4000, vc=30)]}
+         *      {start=[WaterSensor(id=sensor_1, ts=4000, vc=40)], end=[WaterSensor(id=sensor_2, ts=5000, vc=50)]}
+         *  设置超时数据结果(1s)：
+         *      无结果
+         *  设置超时数据结果(3s)：
+         *      {start=[WaterSensor(id=sensor_1, ts=4000, vc=40)], end=[WaterSensor(id=sensor_2, ts=5000, vc=50)]}
+         */
+        // 2.定义模式  模式知识补充(超时数据)
         Pattern<WaterSensor, WaterSensor> pattern = Pattern
                 .<WaterSensor>begin("start")
                 .where(new IterativeCondition<WaterSensor>() {
                     @Override
-                    public boolean filter(WaterSensor value, IterativeCondition.Context<WaterSensor> ctx) throws Exception {
+                    public boolean filter(WaterSensor value, Context<WaterSensor> ctx) throws Exception {
                         return "sensor_1".equals(value.getId());
                     }
                 })
-                //默认就是松散连续
-                 .times(2)
-                //严格连续 相当于 next
-                // .consecutive()
-                //非确定的松散连续
-                .allowCombinations()
-                ;
+                .next("end")
+                .where(new IterativeCondition<WaterSensor>() {
+                    @Override
+                    public boolean filter(WaterSensor value, Context<WaterSensor> ctx) throws Exception {
+                        return "sensor_2".equals(value.getId());
+                    }
+                })
+                // 超时数据，不包含这个时间，证明两个匹配到的事件之间间隔时间>=三秒将匹配不到
+                .within(Time.seconds(1));
 
         // 3.将模式作用于流上
         PatternStream<WaterSensor> patternStream = CEP.pattern(waterSensorDStream, pattern);

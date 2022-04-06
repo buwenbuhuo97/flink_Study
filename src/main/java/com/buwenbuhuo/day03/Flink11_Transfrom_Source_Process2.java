@@ -57,7 +57,10 @@ public class Flink11_Transfrom_Source_Process2 {
                     // 2.与当前的vn进行累加
                     int currentVcSum = lastVc + value.getVc();
 
-                    // 3.将数据发送到下游
+                    // 3.将当前的vc累加过后的结果重新写入map集合
+                    map.put(value.getId(), currentVcSum);
+
+                    // 4.将数据发送到下游
                     out.collect(new WaterSensor(value.getId(), value.getTs(), currentVcSum));
                 }else {
                     // TODO key不存在证明这是第一条数据
