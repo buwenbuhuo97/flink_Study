@@ -9,9 +9,7 @@ import org.apache.flink.table.api.Over;
 import org.apache.flink.table.api.Table;
 import org.apache.flink.table.api.TableResult;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
-
 import java.time.Duration;
-
 import static org.apache.flink.table.api.Expressions.$;
 import static org.apache.flink.table.api.Expressions.lit;
 
@@ -19,7 +17,7 @@ import static org.apache.flink.table.api.Expressions.lit;
  * Author 不温卜火
  * Create 2022-04-06 11:16
  * MyBlog https://buwenbuhuo.blog.csdn.net
- * Description:Over Windows：无界补充：往前两行 & 往前两秒（代码实现）
+ * Description:Over Windows：有界：往前两行 & 往前两秒（代码实现）
  */
 public class Flink20_TableAPI_EventTime_OverWindow2 {
     public static void main(String[] args) throws Exception {
@@ -53,9 +51,8 @@ public class Flink20_TableAPI_EventTime_OverWindow2 {
         Table table = tableEnv.fromDataStream(waterSensorStream
                 , $("id"), $("ts").rowtime(), $("vc"));
 
-        // 4.Over Windows：无界
+        // 4.Over Windows：有界
         TableResult result = table
-                // .window(Over.partitionBy($("id")).orderBy($("ts")).as("w"))
                 //往前两行
                 //   .window(Over.partitionBy($("id")).orderBy($("ts")).preceding(rowInterval(2L)).as("w"))
                 //往前两秒
